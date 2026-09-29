@@ -15,6 +15,11 @@
       Programmer Mode
     </label>
 
+    <label class="mode-toggle">
+      <input type="checkbox" id="statistics-toggle" />
+      Statistics Mode
+    </label>
+
     <div class="base-selector" id="base-selector" hidden>
       <button class="key key-base" data-base="10">DEC</button>
       <button class="key key-base" data-base="16">HEX</button>
@@ -29,6 +34,17 @@
       <button class="key" data-digit="D">D</button>
       <button class="key" data-digit="E">E</button>
       <button class="key" data-digit="F">F</button>
+    </div>
+
+    <div class="stats-panel" id="stats-panel" hidden>
+      <div class="stats-buttons">
+        <button class="key" id="stats-add">Add</button>
+        <button class="key" id="stats-sum">Sum</button>
+        <button class="key" id="stats-avg">Avg</button>
+        <button class="key" id="stats-stddev">Std Dev</button>
+        <button class="key" id="stats-clear-data">Clear Data</button>
+      </div>
+      <div class="data-list" id="data-list"></div>
     </div>
 
     <div class="keys">

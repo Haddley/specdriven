@@ -1,4 +1,4 @@
-import { CalculatorEngine, isValidDigitForBase } from "./calculator-logic.js";
+import { CalculatorEngine, isValidDigitForBase, formatNumber } from "./calculator-logic.js";
 
 const engine = new CalculatorEngine();
 const displayEl = document.getElementById("display");
@@ -6,6 +6,9 @@ const decimalButton = document.getElementById("decimal");
 const programmerToggle = document.getElementById("programmer-toggle");
 const baseSelector = document.getElementById("base-selector");
 const hexKeys = document.getElementById("hex-keys");
+const statisticsToggle = document.getElementById("statistics-toggle");
+const statsPanel = document.getElementById("stats-panel");
+const dataListEl = document.getElementById("data-list");
 const digitButtons = document.querySelectorAll("button[data-digit]");
 const baseButtons = document.querySelectorAll("button[data-base]");
 
@@ -31,6 +34,11 @@ function render() {
   baseButtons.forEach((button) => {
     button.classList.toggle("active", Number(button.dataset.base) === engine.base);
   });
+
+  // Statistics-Mode-only controls are hidden entirely outside the mode.
+  statsPanel.hidden = !engine.statisticsMode;
+  statisticsToggle.checked = engine.statisticsMode;
+  dataListEl.textContent = engine.data.map((value) => formatNumber(value, 10)).join(", ");
 }
 
 digitButtons.forEach((button) => {
@@ -72,6 +80,36 @@ baseButtons.forEach((button) => {
     engine.setBase(Number(button.dataset.base));
     render();
   });
+});
+
+statisticsToggle.addEventListener("change", () => {
+  engine.setStatisticsMode(statisticsToggle.checked);
+  render();
+});
+
+document.getElementById("stats-add").addEventListener("click", () => {
+  engine.addData();
+  render();
+});
+
+document.getElementById("stats-sum").addEventListener("click", () => {
+  engine.sum();
+  render();
+});
+
+document.getElementById("stats-avg").addEventListener("click", () => {
+  engine.average();
+  render();
+});
+
+document.getElementById("stats-stddev").addEventListener("click", () => {
+  engine.standardDeviation();
+  render();
+});
+
+document.getElementById("stats-clear-data").addEventListener("click", () => {
+  engine.clearData();
+  render();
 });
 
 render();

@@ -61,6 +61,11 @@ export class CalculatorEngine {
     // the active mode or base), so it's set up once here, outside reset().
     this.base = BASES.DEC;
     this.programmerMode = false;
+    // Statistics Mode's data list persists across clear() and across
+    // toggling Statistics Mode off and on; only clearData() empties it. So,
+    // like base/programmerMode above, it's set up once here, outside reset().
+    this.statisticsMode = false;
+    this.data = [];
     this.reset();
   }
 
@@ -88,9 +93,102 @@ export class CalculatorEngine {
     this.programmerMode = active;
     if (active) {
       this.display = formatNumber(Math.trunc(this._parseValue(this.display)), this.base);
+      // Statistics Mode and Programmer Mode are mutually exclusive.
+      this.statisticsMode = false;
     } else if (this.base !== BASES.DEC) {
       this.setBase(BASES.DEC);
     }
+  }
+
+  /**
+   * Turns Statistics Mode on/off. Activating preserves the current display
+   * value and, if Programmer Mode is active, turns it off (reverting to
+   * DEC) — the two modes are mutually exclusive. Deactivating leaves the
+   * data list untouched; only clearData() empties it.
+   */
+  setStatisticsMode(active) {
+    if (this.error) return;
+    this.statisticsMode = active;
+    if (active && this.programmerMode) {
+      this.setProgrammerMode(false);
+    }
+  }
+
+  /**
+   * Appends the current display's numeric value to the data list, then
+   * resets the display to "0" for the next entry (waitingForOperand-style),
+   * mirroring how equals() starts fresh entry. No-ops if the display is
+   * already a freshly-computed value awaiting new digit entry (e.g. right
+   * after Sum/Average/Std Dev), so that computed statistic can't be
+   * silently re-added as a new data point.
+   */
+  addData() {
+    if (this.error) return;
+    if (this.waitingForOperand) return;
+    const value = this._parseValue(this.display);
+    this.data.push(value);
+    this.display = "0";
+    this.waitingForOperand = true;
+  }
+
+  /** Sums the data list. Used internally by sum() and average()/standardDeviation()'s mean. */
+  _total() {
+    return this.data.reduce((acc, value) => acc + value, 0);
+  }
+
+  /**
+   * Sums the data list and shows the result, leaving the list unchanged.
+   * Repeatable, like equals() — and like equals(), digit entry afterward
+   * starts a fresh number rather than appending.
+   */
+  sum() {
+    if (this.error) return;
+    this.display = formatNumber(this._total(), 10);
+    this.waitingForOperand = true;
+  }
+
+  /**
+   * Averages the data list and shows the result, leaving the list
+   * unchanged. Errors (and blocks further input until Clear) if the list
+   * is empty. Repeatable, like equals() — and like equals(), digit entry
+   * afterward starts a fresh number rather than appending.
+   */
+  average() {
+    if (this.error) return;
+    if (this.data.length === 0) {
+      this.display = "No data entered";
+      this.error = true;
+      return;
+    }
+    this.display = formatNumber(this._total() / this.data.length, 10);
+    this.waitingForOperand = true;
+  }
+
+  /**
+   * Computes the sample standard deviation (divide by n−1) of the data
+   * list and shows the result, leaving the list unchanged. Errors (and
+   * blocks further input until Clear) if fewer than 2 points are present.
+   * Repeatable, like equals() — and like equals(), digit entry afterward
+   * starts a fresh number rather than appending.
+   */
+  standardDeviation() {
+    if (this.error) return;
+    if (this.data.length < 2) {
+      this.display = "Not enough data";
+      this.error = true;
+      return;
+    }
+    const mean = this._total() / this.data.length;
+    const variance =
+      this.data.reduce((acc, value) => acc + (value - mean) ** 2, 0) / (this.data.length - 1);
+    this.display = formatNumber(Math.sqrt(variance), 10);
+    this.waitingForOperand = true;
+  }
+
+  /** Empties the data list independently of the existing Clear (C) button. */
+  clearData() {
+    if (this.error) return;
+    this.data = [];
   }
 
   /**

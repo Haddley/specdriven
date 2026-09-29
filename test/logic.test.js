@@ -255,3 +255,183 @@ test("Programmer Mode: deactivating restores decimal input and the full digit se
   calc.inputDigit("5");
   assert.equal(calc.display, "1.5", "decimal point works again in Standard mode");
 });
+
+// --- Statistics Mode (Sum, Average, Standard Deviation) ---
+
+test("Statistics Mode: Add appends the display value to the data list and resets the display", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  calc.inputDigit("4");
+  calc.addData();
+  assert.deepEqual(calc.data, [4]);
+  assert.equal(calc.display, "0");
+
+  calc.inputDigit("8");
+  calc.addData();
+  calc.inputDigit("6");
+  calc.addData();
+  assert.deepEqual(calc.data, [4, 8, 6]);
+  assert.equal(calc.display, "0");
+});
+
+test("Statistics Mode: Sum computes over the data list and leaves it unchanged", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  [4, 8, 6].forEach((n) => {
+    calc.inputDigit(String(n));
+    calc.addData();
+  });
+  calc.sum();
+  assert.equal(calc.display, "18");
+  assert.deepEqual(calc.data, [4, 8, 6], "the data list is unchanged");
+
+  // Repeatable, like equals().
+  calc.sum();
+  assert.equal(calc.display, "18");
+});
+
+test("Statistics Mode: Add no-ops right after Sum/Average/Std Dev, until new digits are entered", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  calc.inputDigit("4");
+  calc.addData();
+  calc.inputDigit("8");
+  calc.addData();
+  calc.sum();
+  assert.equal(calc.display, "12");
+
+  calc.addData(); // pressed again with no fresh digit entry in between
+  assert.deepEqual(calc.data, [4, 8], "the computed sum is not silently re-added as a data point");
+  assert.equal(calc.display, "12", "the display is unaffected by the no-op");
+});
+
+test("Statistics Mode: Average computes over the data list and leaves it unchanged", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  [4, 8, 6].forEach((n) => {
+    calc.inputDigit(String(n));
+    calc.addData();
+  });
+  calc.average();
+  assert.equal(calc.display, "6");
+  assert.deepEqual(calc.data, [4, 8, 6], "the data list is unchanged");
+});
+
+test("Statistics Mode: Std Dev computes the sample standard deviation and leaves the data unchanged", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  [4, 8, 6].forEach((n) => {
+    calc.inputDigit(String(n));
+    calc.addData();
+  });
+  calc.standardDeviation();
+  // mean = 6, variance = ((4-6)^2 + (8-6)^2 + (6-6)^2) / (3-1) = 8/2 = 4, sqrt = 2
+  assert.equal(calc.display, "2");
+  assert.deepEqual(calc.data, [4, 8, 6], "the data list is unchanged");
+});
+
+test("Statistics Mode: Sum with no data displays 0", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  calc.sum();
+  assert.equal(calc.display, "0");
+});
+
+test("Statistics Mode: Average with no data errors and blocks input until Clear", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  calc.average();
+  assert.equal(calc.display, "No data entered");
+  assert.equal(calc.error, true);
+
+  calc.inputDigit("1");
+  assert.equal(calc.display, "No data entered", "input is ignored while in error state");
+
+  calc.clear();
+  assert.equal(calc.display, "0");
+  assert.equal(calc.error, false);
+  assert.deepEqual(calc.data, [], "no data had been entered");
+});
+
+test("Statistics Mode: Std Dev with fewer than 2 points errors and blocks input until Clear", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  calc.inputDigit("5");
+  calc.addData();
+  calc.standardDeviation();
+  assert.equal(calc.display, "Not enough data");
+  assert.equal(calc.error, true);
+
+  calc.inputDigit("1");
+  assert.equal(calc.display, "Not enough data", "input is ignored while in error state");
+
+  calc.clear();
+  assert.equal(calc.display, "0");
+  assert.equal(calc.error, false);
+  assert.deepEqual(calc.data, [5], "the data list survives Clear, since only Clear Data empties it");
+});
+
+test("Statistics Mode: Clear Data empties the list independently of the display", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  [4, 8, 6].forEach((n) => {
+    calc.inputDigit(String(n));
+    calc.addData();
+  });
+  calc.sum();
+  assert.equal(calc.display, "18");
+
+  calc.clearData();
+  assert.deepEqual(calc.data, []);
+  assert.equal(calc.display, "18", "the display is unaffected by Clear Data");
+});
+
+test("Statistics Mode: the data list persists across Clear (C) and across toggling the mode off and on", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  calc.inputDigit("7");
+  calc.addData();
+
+  calc.clear();
+  assert.deepEqual(calc.data, [7], "Clear (C) does not empty the data list");
+
+  calc.setStatisticsMode(false);
+  calc.setStatisticsMode(true);
+  assert.deepEqual(calc.data, [7], "toggling the mode off and on does not empty the data list");
+});
+
+test("Statistics Mode: activating turns off Programmer Mode and reverts the base to DEC", () => {
+  const calc = new CalculatorEngine();
+  calc.setProgrammerMode(true);
+  calc.setBase(16);
+  calc.inputDigit("A");
+  calc.setStatisticsMode(true);
+  assert.equal(calc.programmerMode, false);
+  assert.equal(calc.base, 10);
+  assert.equal(calc.statisticsMode, true);
+});
+
+test("Statistics Mode: activating Programmer Mode turns off Statistics Mode", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  calc.inputDigit("9");
+  calc.addData();
+  calc.setProgrammerMode(true);
+  assert.equal(calc.statisticsMode, false);
+  assert.equal(calc.programmerMode, true);
+  assert.deepEqual(calc.data, [9], "data is retained even though the mode is off");
+});
+
+test("Statistics Mode: digit entry after computing a statistic starts a fresh number", () => {
+  const calc = new CalculatorEngine();
+  calc.setStatisticsMode(true);
+  calc.inputDigit("4");
+  calc.addData();
+  calc.inputDigit("8");
+  calc.addData();
+  calc.average();
+  assert.equal(calc.display, "6");
+
+  calc.inputDigit("3");
+  assert.equal(calc.display, "3", "digit entry replaces rather than appends after Average");
+});
