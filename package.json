@@ -1,0 +1,10 @@
+{
+  "name": "specdriven",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A plain HTML/JS four-function calculator, used as a fixed baseline for trialling OpenSpec, Spec-Kit, and BMAD spec-driven workflows.",
+  "scripts": {
+    "test": "node --test"
+  }
+}

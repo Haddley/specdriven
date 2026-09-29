@@ -1,0 +1,61 @@
+/* Flat, boxy, monochrome — a Windows 1.0 (1985) calculator homage, not a
+   pixel-accurate recreation. No gradients, no shadows, no rounded corners. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #c0c0c0;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.calculator {
+  width: 240px;
+  border: 2px solid #000000;
+  background: #ffffff;
+  padding: 8px;
+}
+
+.display {
+  height: 40px;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-size: 24px;
+  text-align: right;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.key {
+  height: 40px;
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.key:active {
+  background: #000000;
+  color: #ffffff;
+}
+
+.key-equals {
+  grid-column: 1 / -1;
+}
