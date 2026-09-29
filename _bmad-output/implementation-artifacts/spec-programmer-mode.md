@@ -108,4 +108,4 @@ Conversion approach: keep the engine's internal value as a JS number computed vi
 - `npm test` -- run after implementation: **22/22 passing** (12 pre-existing + 10 Programmer Mode tests), then again after the review-triage patches below with 2 more tests added for the fixed bugs — see Review Triage Log.
 
 **Manual checks (if no CLI):**
-- Not yet performed (no browser available in this session). Recommended before merging: open `index.html`, toggle Programmer Mode, cycle through DEC/HEX/OCT/BIN, confirm digit buttons enable/disable correctly per base, perform arithmetic in each base, and confirm divide-by-zero still shows the error and blocks input until Clear.
+- Performed by the human in a browser: confirmed DEC 255 -> HEX "FF" on base switch, OCT `3 - 5` -> "-2" as sign + magnitude, and digits 8/9/A-F plus the decimal point correctly greyed out per active base.
