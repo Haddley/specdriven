@@ -152,7 +152,7 @@ export class CalculatorEngine {
           this.operator = null;
           return null;
         }
-        return a / b;
+        return this.mode === "programmer" ? Math.trunc(a / b) : a / b;
       default:
         return b;
     }

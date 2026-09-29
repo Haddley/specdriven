@@ -183,3 +183,17 @@ Task: "Add hexadecimal digit keys A–F to index.html"                          
 - Verify tests pass after each implementation task before moving to the next
 - Commit after each task or logical group
 - Stop at any checkpoint to validate a story independently
+
+---
+
+## Phase 7: Convergence
+
+- [X] T024 Add a test in test/logic.test.js verifying left-to-right multi-operator chaining (not operator precedence) in Programmer Mode with a non-decimal base per spec.md Edge Cases (partial)
+- [X] T025 Add a test in test/logic.test.js verifying that pressing Clear in Programmer Mode (no error state) resets display/previousValue/operator while leaving mode and base unchanged per FR-011 (partial)
+
+---
+
+## Phase 8: Convergence
+
+- [X] T026 Truncate the division result to an integer in `_compute`'s `÷` branch (or before formatting in `setOperator`/`equals`) when `this.mode === "programmer"`, so an inexact division (e.g. Binary "11" ÷ "10") no longer displays a fractional base value via `formatInBase`; add a test/logic.test.js case for a non-exact division in a non-decimal Programmer Mode base per FR-007 (contradicts)
+- [X] T027 Add test/logic.test.js cases covering the remaining base-switch pairs (e.g. Hexadecimal→Octal, Octal→Decimal, Decimal→Binary, Hexadecimal→Binary, Octal→Hexadecimal, Binary→Decimal, Binary→Hexadecimal, Decimal→Octal, Hexadecimal→Decimal, Octal→Binary) so base-switch conversion is verified across all base pairs per SC-004 (partial)

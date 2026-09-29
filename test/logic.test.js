@@ -309,3 +309,148 @@ test("switching base while in an error state is a no-op until clear", () => {
   calc.setBase(16);
   assert.equal(calc.base, 16);
 });
+
+test("Programmer Mode Binary: chains operators left-to-right, not by operator precedence", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(2);
+  calc.inputDigit("1");
+  calc.inputDigit("0");
+  calc.inputDigit("1");
+  calc.setOperator("+");
+  calc.inputDigit("1");
+  calc.inputDigit("1");
+  calc.setOperator("×");
+  calc.inputDigit("1");
+  calc.inputDigit("0");
+  calc.equals();
+  assert.equal(calc.display, "10000", "(101 + 11) x 10 = 10000, i.e. (5 + 3) x 2 = 16");
+});
+
+test("Programmer Mode Binary: inexact division truncates to an integer", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(2);
+  calc.inputDigit("1");
+  calc.inputDigit("1");
+  calc.setOperator("÷");
+  calc.inputDigit("1");
+  calc.inputDigit("0");
+  calc.equals();
+  assert.equal(calc.display, "1", "11 (3) ÷ 10 (2) truncates to 1, not 1.5");
+});
+
+test("switching base from Hexadecimal to Octal converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(16);
+  calc.inputDigit("F");
+  calc.inputDigit("F");
+  calc.setBase(8);
+  assert.equal(calc.display, "377");
+});
+
+test("switching base from Octal to Decimal converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(8);
+  calc.inputDigit("3");
+  calc.inputDigit("7");
+  calc.inputDigit("7");
+  calc.setBase(10);
+  assert.equal(calc.display, "255");
+});
+
+test("switching base from Decimal to Binary converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.inputDigit("2");
+  calc.inputDigit("5");
+  calc.inputDigit("5");
+  calc.setBase(2);
+  assert.equal(calc.display, "11111111");
+});
+
+test("switching base from Hexadecimal to Binary converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(16);
+  calc.inputDigit("F");
+  calc.inputDigit("F");
+  calc.setBase(2);
+  assert.equal(calc.display, "11111111");
+});
+
+test("switching base from Octal to Hexadecimal converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(8);
+  calc.inputDigit("3");
+  calc.inputDigit("7");
+  calc.inputDigit("7");
+  calc.setBase(16);
+  assert.equal(calc.display, "FF");
+});
+
+test("switching base from Binary to Decimal converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(2);
+  for (const bit of "11111111") calc.inputDigit(bit);
+  calc.setBase(10);
+  assert.equal(calc.display, "255");
+});
+
+test("switching base from Binary to Hexadecimal converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(2);
+  for (const bit of "11111111") calc.inputDigit(bit);
+  calc.setBase(16);
+  assert.equal(calc.display, "FF");
+});
+
+test("switching base from Decimal to Octal converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.inputDigit("2");
+  calc.inputDigit("5");
+  calc.inputDigit("5");
+  calc.setBase(8);
+  assert.equal(calc.display, "377");
+});
+
+test("switching base from Hexadecimal to Decimal converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(16);
+  calc.inputDigit("F");
+  calc.inputDigit("F");
+  calc.setBase(10);
+  assert.equal(calc.display, "255");
+});
+
+test("switching base from Octal to Binary converts and redisplays the value", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(8);
+  calc.inputDigit("3");
+  calc.inputDigit("7");
+  calc.inputDigit("7");
+  calc.setBase(2);
+  assert.equal(calc.display, "11111111");
+});
+
+test("Clear in Programmer Mode resets entry/calculation but leaves mode and base unchanged", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.setBase(16);
+  calc.inputDigit("F");
+  calc.setOperator("+");
+  calc.clear();
+  assert.equal(calc.display, "0");
+  assert.equal(calc.previousValue, null);
+  assert.equal(calc.operator, null);
+  assert.equal(calc.mode, "programmer", "clear must not kick the user back to Standard Mode");
+  assert.equal(calc.base, 16, "clear must not reset the selected base");
+});
