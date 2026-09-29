@@ -86,12 +86,16 @@ than two data points).
 
 **Independent Test**: Can be fully tested by adding "2", "4", "4", "4", "5",
 "5", "7", "9" to the data set and requesting Standard Deviation — the display
-shows the sample standard deviation of that set (2).
+shows the sample standard deviation of that set (approximately 2.138090).
 
 **Acceptance Scenarios**:
 
 1. **Given** a data set containing 2, 4, 4, 4, 5, 5, 7, and 9, **When** the
-   user requests the Standard Deviation, **Then** the display shows "2".
+   user requests the Standard Deviation, **Then** the display shows
+   approximately "2.138090" (the *sample* standard deviation, dividing by
+   n-1=7; the population standard deviation of this set is 2, which is a
+   different figure — corrected 2026-09-29, see plan.md's research.md for
+   how this was caught).
 2. **Given** a data set containing exactly one data point, **When** the user
    requests the Standard Deviation, **Then** the calculator indicates
    standard deviation is undefined for a single data point, rather than
