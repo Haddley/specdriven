@@ -35,6 +35,13 @@ body {
   white-space: nowrap;
 }
 
+.mode-toggle {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
 .keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -52,6 +59,22 @@ body {
 }
 
 .key:active {
+  background: #000000;
+  color: #ffffff;
+}
+
+.key:disabled {
+  color: #a0a0a0;
+  border-color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+.key:disabled:active {
+  background: #ffffff;
+  color: #a0a0a0;
+}
+
+.mode-key.active {
   background: #000000;
   color: #ffffff;
 }

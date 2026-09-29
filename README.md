@@ -30,12 +30,15 @@ Runs the calculation-engine tests with Node's built-in test runner
 
 ## Structure
 
-- `index.html` / `style.css` — the flat, boxy UI
+- `index.html` / `style.css` — the flat, boxy UI, including the DEC/HEX/OCT/BIN
+  mode toggle and hex digit keys
 - `calculator-logic.js` — the pure calculation engine (no DOM access), so
   it can be tested directly
 - `calculator.js` — DOM wiring: button clicks call into the engine and
-  re-render the display
-- `test/logic.test.js` — tests against `calculator-logic.js`
+  re-render the display, including enabling/disabling keys for the active base
+- `test/logic.test.js` — tests against the decimal four-function behavior
+- `test/programmer-mode.test.js` — tests against Programmer Mode (base
+  switching, base-aware calculation)
 
 ## Design decisions already made
 
@@ -43,3 +46,11 @@ Runs the calculation-engine tests with Node's built-in test runner
   way a plain calculator works — not by operator precedence.
 - Dividing by zero shows `Cannot divide by zero` and blocks further input
   until `C` (Clear) is pressed.
+- **Programmer Mode** lets the user switch the active base between Decimal,
+  Hexadecimal, Octal, and Binary. Hex/Octal/Binary are **integer-only**
+  (the decimal-point key is disabled) and represented as **signed 32-bit
+  two's-complement integers**, so arithmetic overflow wraps (e.g. `7FFFFFFF`
+  in Hex `+ 1` wraps to `80000000`) rather than erroring or growing
+  unbounded. Switching bases reformats the current value into the new base
+  rather than resetting it, truncating toward zero if a fractional Decimal
+  value is present.

@@ -13,14 +13,48 @@ export function formatNumber(value) {
   return rounded.toString();
 }
 
+const RADIX_BY_BASE = {
+  HEX: 16,
+  OCT: 8,
+  BIN: 2,
+};
+
+const VALID_DIGITS_BY_BASE = {
+  DEC: "0123456789",
+  HEX: "0123456789ABCDEF",
+  OCT: "01234567",
+  BIN: "01",
+};
+
+/** Digits the given base accepts as input. */
+export function validDigitsForBase(base) {
+  return VALID_DIGITS_BY_BASE[base];
+}
+
+/**
+ * Renders a value as a signed 32-bit two's-complement string in the given
+ * non-decimal base: uppercase hex digits, no radix prefix, no zero-padding
+ * for positive values (negative values naturally fill all 32 bits since
+ * their sign bit is set).
+ */
+export function toRadixString(value, base) {
+  const unsigned = (value | 0) >>> 0;
+  return unsigned.toString(RADIX_BY_BASE[base]).toUpperCase();
+}
+
 /**
  * A four-function calculator, modelled as a sequence of button presses.
  * Operations chain left-to-right as entered — e.g. 5 + 3 × 2 computes
  * (5 + 3) × 2 = 16, the way a plain (non-scientific) calculator works,
  * not by operator precedence.
+ *
+ * The active `base` (Decimal/Hex/Octal/Binary) determines how the display
+ * is entered and rendered. Decimal keeps the existing float behavior;
+ * Hex/Octal/Binary values are signed 32-bit two's-complement integers.
  */
 export class CalculatorEngine {
   constructor() {
+    this.base = "DEC";
     this.reset();
   }
 
@@ -36,8 +70,16 @@ export class CalculatorEngine {
     this.reset();
   }
 
+  setBase(base) {
+    const value = this._parseDisplayValue();
+    this.base = base;
+    if (this.error) return;
+    this.display = this._formatValue(value);
+  }
+
   inputDigit(digit) {
     if (this.error) return;
+    if (!validDigitsForBase(this.base).includes(digit)) return;
     if (this.waitingForOperand) {
       this.display = digit;
       this.waitingForOperand = false;
@@ -48,6 +90,7 @@ export class CalculatorEngine {
 
   inputDecimal() {
     if (this.error) return;
+    if (this.base !== "DEC") return;
     if (this.waitingForOperand) {
       this.display = "0.";
       this.waitingForOperand = false;
@@ -60,7 +103,7 @@ export class CalculatorEngine {
 
   setOperator(nextOperator) {
     if (this.error) return;
-    const inputValue = parseFloat(this.display);
+    const inputValue = this._parseDisplayValue();
 
     if (this.previousValue === null) {
       this.previousValue = inputValue;
@@ -68,7 +111,7 @@ export class CalculatorEngine {
       const result = this._compute(this.previousValue, inputValue, this.operator);
       if (this.error) return;
       this.previousValue = result;
-      this.display = formatNumber(result);
+      this.display = this._formatValue(result);
     }
 
     this.waitingForOperand = true;
@@ -79,14 +122,27 @@ export class CalculatorEngine {
     if (this.error) return;
     if (this.operator === null || this.waitingForOperand) return;
 
-    const inputValue = parseFloat(this.display);
+    const inputValue = this._parseDisplayValue();
     const result = this._compute(this.previousValue, inputValue, this.operator);
     if (this.error) return;
 
-    this.display = formatNumber(result);
+    this.display = this._formatValue(result);
     this.previousValue = null;
     this.operator = null;
     this.waitingForOperand = true;
+  }
+
+  /** Parses the display into the true numeric value, per the active base. */
+  _parseDisplayValue() {
+    if (this.base === "DEC") {
+      return parseFloat(this.display);
+    }
+    return parseInt(this.display, RADIX_BY_BASE[this.base]) | 0;
+  }
+
+  /** Formats a true numeric value for display, per the active base. */
+  _formatValue(value) {
+    return this.base === "DEC" ? formatNumber(value) : toRadixString(value, this.base);
   }
 
   _compute(a, b, operator) {
