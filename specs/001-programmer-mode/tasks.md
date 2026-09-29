@@ -35,7 +35,7 @@ Single flat static app at the repository root (no `src/`, no sub-packages, per p
 
 **Purpose**: Establish a known-good baseline before touching the engine
 
-- [ ] T001 Run `npm test` and confirm the existing Standard Mode suite in test/logic.test.js passes, establishing the pre-change baseline for FR-012/SC-005
+- [X] T001 Run `npm test` and confirm the existing Standard Mode suite in test/logic.test.js passes, establishing the pre-change baseline for FR-012/SC-005
 
 ---
 
@@ -45,13 +45,13 @@ Single flat static app at the repository root (no `src/`, no sub-packages, per p
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Add `mode` (`"standard"` \| `"programmer"`, default `"standard"`) and `base` (`10` \| `16` \| `8` \| `2`, default `10`) fields to `CalculatorEngine`, initialized in the constructor in calculator-logic.js; not reset by `reset()` (per data-model.md)
-- [ ] T003 Add an `isValidDigit(digit, base)` helper function in calculator-logic.js implementing the per-base validity table from data-model.md: Binary (2) → `0-1`; Octal (8) → `0-7`; Decimal (10) → `0-9`; Hexadecimal (16) → `0-9` and `A-F` (case-insensitive on input)
-- [ ] T004 Add a `formatInBase(value, base)` helper function in calculator-logic.js: `return value.toString(base).toUpperCase();` (per contracts/calculator-engine.md Formatting contract)
-- [ ] T005 Implement `setMode(newMode)` on `CalculatorEngine` in calculator-logic.js: no-op if `newMode === this.mode`; otherwise set `this.mode = newMode`, set `this.base = 10`, and call `this.reset()` (satisfies FR-008; depends on T002)
-- [ ] T006 Add tests in test/logic.test.js for `setMode`: switching Programmer → Standard clears the current entry and any in-progress calculation (FR-008); setting mode to its current value is a no-op and does not reset (depends on T005)
-- [ ] T007 [P] Add a mode toggle control (Standard/Programmer) to index.html
-- [ ] T008 Wire the mode toggle in calculator.js to call `engine.setMode(...)` on change and re-render `engine.display` (depends on T005, T007)
+- [X] T002 Add `mode` (`"standard"` \| `"programmer"`, default `"standard"`) and `base` (`10` \| `16` \| `8` \| `2`, default `10`) fields to `CalculatorEngine`, initialized in the constructor in calculator-logic.js; not reset by `reset()` (per data-model.md)
+- [X] T003 Add an `isValidDigit(digit, base)` helper function in calculator-logic.js implementing the per-base validity table from data-model.md: Binary (2) → `0-1`; Octal (8) → `0-7`; Decimal (10) → `0-9`; Hexadecimal (16) → `0-9` and `A-F` (case-insensitive on input)
+- [X] T004 Add a `formatInBase(value, base)` helper function in calculator-logic.js: `return value.toString(base).toUpperCase();` (per contracts/calculator-engine.md Formatting contract)
+- [X] T005 Implement `setMode(newMode)` on `CalculatorEngine` in calculator-logic.js: no-op if `newMode === this.mode`; otherwise set `this.mode = newMode`, set `this.base = 10`, and call `this.reset()` (satisfies FR-008; depends on T002)
+- [X] T006 Add tests in test/logic.test.js for `setMode`: switching Programmer → Standard clears the current entry and any in-progress calculation (FR-008); setting mode to its current value is a no-op and does not reset (depends on T005)
+- [X] T007 [P] Add a mode toggle control (Standard/Programmer) to index.html
+- [X] T008 Wire the mode toggle in calculator.js to call `engine.setMode(...)` on change and re-render `engine.display` (depends on T005, T007)
 
 **Checkpoint**: Foundation ready — user story implementation can now begin
 
@@ -65,13 +65,13 @@ Single flat static app at the repository root (no `src/`, no sub-packages, per p
 
 ### Implementation for User Story 1
 
-- [ ] T009 [P] [US1] Add a base selector control (Decimal, Hexadecimal, Octal, Binary) to index.html, shown only in Programmer Mode
-- [ ] T010 [P] [US1] Add hexadecimal digit keys A–F to index.html, shown only when Hexadecimal is selected
-- [ ] T011 [US1] Implement `setBase(newBase)` on `CalculatorEngine` in calculator-logic.js: no-op if `error` is true, no-op if `newBase === this.base`; otherwise set `this.base = newBase` (base selection only — value conversion is added in User Story 3); depends on T002
-- [ ] T012 [US1] Extend `inputDigit(digit)` in calculator-logic.js: no-op if `this.mode === "programmer"` and `digit` fails `isValidDigit(digit, this.base)` (FR-003); when valid in Hexadecimal, normalize the digit to uppercase before appending/replacing in `display`; depends on T003
-- [ ] T013 [US1] Extend `inputDecimal()` in calculator-logic.js: no-op unconditionally when `this.mode === "programmer"`, regardless of base (FR-007); unchanged in Standard Mode
-- [ ] T014 [US1] Wire the base selector and A–F digit buttons in calculator.js to `engine.setBase(...)` / `engine.inputDigit(...)` respectively, re-rendering after each call the same way existing digit buttons do; depends on T009, T010, T011, T012
-- [ ] T015 [US1] Add tests in test/logic.test.js: valid digit entry displays correctly in each base (Binary "1011", Hexadecimal "2AF" via "2","A","F"); invalid digit presses leave the display unchanged ("9" in Binary, "8" in Octal, a letter in Decimal) (FR-003/SC-003); the decimal-point key is a no-op in Programmer Mode in every base (FR-007); depends on T011, T012, T013
+- [X] T009 [P] [US1] Add a base selector control (Decimal, Hexadecimal, Octal, Binary) to index.html, shown only in Programmer Mode
+- [X] T010 [P] [US1] Add hexadecimal digit keys A–F to index.html, shown only when Hexadecimal is selected
+- [X] T011 [US1] Implement `setBase(newBase)` on `CalculatorEngine` in calculator-logic.js: no-op if `error` is true, no-op if `newBase === this.base`; otherwise set `this.base = newBase` (base selection only — value conversion is added in User Story 3); depends on T002
+- [X] T012 [US1] Extend `inputDigit(digit)` in calculator-logic.js: no-op if `this.mode === "programmer"` and `digit` fails `isValidDigit(digit, this.base)` (FR-003); when valid in Hexadecimal, normalize the digit to uppercase before appending/replacing in `display`; depends on T003
+- [X] T013 [US1] Extend `inputDecimal()` in calculator-logic.js: no-op unconditionally when `this.mode === "programmer"`, regardless of base (FR-007); unchanged in Standard Mode
+- [X] T014 [US1] Wire the base selector and A–F digit buttons in calculator.js to `engine.setBase(...)` / `engine.inputDigit(...)` respectively, re-rendering after each call the same way existing digit buttons do; depends on T009, T010, T011, T012
+- [X] T015 [US1] Add tests in test/logic.test.js: valid digit entry displays correctly in each base (Binary "1011", Hexadecimal "2AF" via "2","A","F"); invalid digit presses leave the display unchanged ("9" in Binary, "8" in Octal, a letter in Decimal) (FR-003/SC-003); the decimal-point key is a no-op in Programmer Mode in every base (FR-007); depends on T011, T012, T013
 
 **Checkpoint**: User Story 1 is fully functional and testable independently
 
@@ -85,9 +85,9 @@ Single flat static app at the repository root (no `src/`, no sub-packages, per p
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Extend `setOperator(nextOperator)` in calculator-logic.js: when `this.mode === "programmer"`, parse `this.display` with `parseInt(this.display, this.base)` instead of `parseFloat`, and format any computed intermediate result with `formatInBase(result, this.base)` instead of `formatNumber` (FR-004/FR-005); depends on T004
-- [ ] T017 [US2] Extend `equals()` in calculator-logic.js with the same base-aware parse (`parseInt`) and format (`formatInBase`) change as T016, leaving `_compute`'s divide-by-zero handling (`"Cannot divide by zero"` message, `error = true` lock) untouched (FR-009); depends on T004
-- [ ] T018 [US2] Add tests in test/logic.test.js: Hexadecimal "F" + "1" = "10"; Octal "7" + "1" = "10"; Binary "11" × "10" = "110" (FR-004/FR-005/SC-002); divide-by-zero in Programmer Mode shows "Cannot divide by zero" and blocks further digit input until `clear()`, identical to Standard Mode (FR-009); a negative result (e.g. "3" − "5" in Decimal Programmer Mode) displays as a leading "-" followed by the magnitude in the selected base (FR-010); depends on T016, T017
+- [X] T016 [US2] Extend `setOperator(nextOperator)` in calculator-logic.js: when `this.mode === "programmer"`, parse `this.display` with `parseInt(this.display, this.base)` instead of `parseFloat`, and format any computed intermediate result with `formatInBase(result, this.base)` instead of `formatNumber` (FR-004/FR-005); depends on T004
+- [X] T017 [US2] Extend `equals()` in calculator-logic.js with the same base-aware parse (`parseInt`) and format (`formatInBase`) change as T016, leaving `_compute`'s divide-by-zero handling (`"Cannot divide by zero"` message, `error = true` lock) untouched (FR-009); depends on T004
+- [X] T018 [US2] Add tests in test/logic.test.js: Hexadecimal "F" + "1" = "10"; Octal "7" + "1" = "10"; Binary "11" × "10" = "110" (FR-004/FR-005/SC-002); divide-by-zero in Programmer Mode shows "Cannot divide by zero" and blocks further digit input until `clear()`, identical to Standard Mode (FR-009); a negative result (e.g. "3" − "5" in Decimal Programmer Mode) displays as a leading "-" followed by the magnitude in the selected base (FR-010); depends on T016, T017
 
 **Checkpoint**: User Stories 1 AND 2 both work independently
 
@@ -101,8 +101,8 @@ Single flat static app at the repository root (no `src/`, no sub-packages, per p
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Extend `setBase(newBase)` in calculator-logic.js (built in T011) to convert the current value: parse `this.display` with the *current* `this.base` via `parseInt`, reassign `this.base = newBase`, then reformat `this.display` with `formatInBase` in the new base — without touching `previousValue`, `operator`, or `waitingForOperand` (FR-006); depends on T011, T004
-- [ ] T020 [US3] Add tests in test/logic.test.js: Decimal "255" → switch to Hexadecimal → display "FF"; Binary "1010" → switch to Octal → display "12" (FR-006/SC-004); with an operand entered and an operator pending, switching base converts the already-entered operand and redisplays it in the new base while the pending operator is preserved (US3 Acceptance Scenario 3); switching base while `error === true` is a no-op until `clear()` is pressed (edge case); depends on T019
+- [X] T019 [US3] Extend `setBase(newBase)` in calculator-logic.js (built in T011) to convert the current value: parse `this.display` with the *current* `this.base` via `parseInt`, reassign `this.base = newBase`, then reformat `this.display` with `formatInBase` in the new base — without touching `previousValue`, `operator`, or `waitingForOperand` (FR-006); depends on T011, T004
+- [X] T020 [US3] Add tests in test/logic.test.js: Decimal "255" → switch to Hexadecimal → display "FF"; Binary "1010" → switch to Octal → display "12" (FR-006/SC-004); with an operand entered and an operator pending, switching base converts the already-entered operand and redisplays it in the new base while the pending operator is preserved (US3 Acceptance Scenario 3); switching base while `error === true` is a no-op until `clear()` is pressed (edge case); depends on T019
 
 **Checkpoint**: All user stories are independently functional
 
@@ -112,9 +112,9 @@ Single flat static app at the repository root (no `src/`, no sub-packages, per p
 
 **Purpose**: Visual finish and final regression/manual validation across all stories
 
-- [ ] T021 [P] Add minimal styling for the mode toggle, base selector, and A–F keys in style.css, matching the existing flat/monochrome look
-- [ ] T022 Run the full `npm test` suite and confirm all pre-existing Standard Mode tests in test/logic.test.js still pass unchanged, alongside all new Programmer Mode tests (FR-012/SC-005)
-- [ ] T023 Manually walk through quickstart.md sections 1–4 in a browser (US1, US2, US3, and the Standard Mode regression check)
+- [X] T021 [P] Add minimal styling for the mode toggle, base selector, and A–F keys in style.css, matching the existing flat/monochrome look
+- [X] T022 Run the full `npm test` suite and confirm all pre-existing Standard Mode tests in test/logic.test.js still pass unchanged, alongside all new Programmer Mode tests (FR-012/SC-005)
+- [X] T023 Manually walk through quickstart.md sections 1–4 in a browser (US1, US2, US3, and the Standard Mode regression check)
 
 ---
 

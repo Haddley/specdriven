@@ -59,3 +59,32 @@ body {
 .key-equals {
   grid-column: 1 / -1;
 }
+
+.mode-toggle,
+.base-selector {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.mode-toggle {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.base-selector {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.hex-keys {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.mode-toggle .key,
+.base-selector .key,
+.hex-keys .key {
+  height: 32px;
+  font-size: 14px;
+}

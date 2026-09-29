@@ -13,6 +13,30 @@ export function formatNumber(value) {
   return rounded.toString();
 }
 
+const VALID_DIGITS_BY_BASE = {
+  2: "01",
+  8: "01234567",
+  10: "0123456789",
+  16: "0123456789ABCDEF",
+};
+
+/**
+ * Whether `digit` is a valid digit for `base` (case-insensitive for hex
+ * letters), per the Programmer Mode digit-validity table.
+ */
+function isValidDigit(digit, base) {
+  return VALID_DIGITS_BY_BASE[base].includes(digit.toUpperCase());
+}
+
+/**
+ * Formats `value` as a string in `base`, uppercasing hex letters.
+ * Negative numbers come out sign-magnitude for free (e.g. "-101" for -5
+ * in base 2), via `Number.prototype.toString(radix)`.
+ */
+function formatInBase(value, base) {
+  return value.toString(base).toUpperCase();
+}
+
 /**
  * A four-function calculator, modelled as a sequence of button presses.
  * Operations chain left-to-right as entered — e.g. 5 + 3 × 2 computes
@@ -21,6 +45,8 @@ export function formatNumber(value) {
  */
 export class CalculatorEngine {
   constructor() {
+    this.mode = "standard";
+    this.base = 10;
     this.reset();
   }
 
@@ -38,16 +64,20 @@ export class CalculatorEngine {
 
   inputDigit(digit) {
     if (this.error) return;
+    if (this.mode === "programmer" && !isValidDigit(digit, this.base)) return;
+    const normalizedDigit = this.mode === "programmer" ? digit.toUpperCase() : digit;
+
     if (this.waitingForOperand) {
-      this.display = digit;
+      this.display = normalizedDigit;
       this.waitingForOperand = false;
     } else {
-      this.display = this.display === "0" ? digit : this.display + digit;
+      this.display = this.display === "0" ? normalizedDigit : this.display + normalizedDigit;
     }
   }
 
   inputDecimal() {
     if (this.error) return;
+    if (this.mode === "programmer") return;
     if (this.waitingForOperand) {
       this.display = "0.";
       this.waitingForOperand = false;
@@ -60,7 +90,8 @@ export class CalculatorEngine {
 
   setOperator(nextOperator) {
     if (this.error) return;
-    const inputValue = parseFloat(this.display);
+    const inputValue =
+      this.mode === "programmer" ? parseInt(this.display, this.base) : parseFloat(this.display);
 
     if (this.previousValue === null) {
       this.previousValue = inputValue;
@@ -68,7 +99,7 @@ export class CalculatorEngine {
       const result = this._compute(this.previousValue, inputValue, this.operator);
       if (this.error) return;
       this.previousValue = result;
-      this.display = formatNumber(result);
+      this.display = this.mode === "programmer" ? formatInBase(result, this.base) : formatNumber(result);
     }
 
     this.waitingForOperand = true;
@@ -79,14 +110,30 @@ export class CalculatorEngine {
     if (this.error) return;
     if (this.operator === null || this.waitingForOperand) return;
 
-    const inputValue = parseFloat(this.display);
+    const inputValue =
+      this.mode === "programmer" ? parseInt(this.display, this.base) : parseFloat(this.display);
     const result = this._compute(this.previousValue, inputValue, this.operator);
     if (this.error) return;
 
-    this.display = formatNumber(result);
+    this.display = this.mode === "programmer" ? formatInBase(result, this.base) : formatNumber(result);
     this.previousValue = null;
     this.operator = null;
     this.waitingForOperand = true;
+  }
+
+  setMode(newMode) {
+    if (newMode === this.mode) return;
+    this.mode = newMode;
+    this.base = 10;
+    this.reset();
+  }
+
+  setBase(newBase) {
+    if (this.error) return;
+    if (newBase === this.base) return;
+    const currentValue = parseInt(this.display, this.base);
+    this.base = newBase;
+    this.display = formatInBase(currentValue, newBase);
   }
 
   _compute(a, b, operator) {
