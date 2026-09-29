@@ -47,6 +47,8 @@ export class CalculatorEngine {
   constructor() {
     this.mode = "standard";
     this.base = 10;
+    this.dataSet = [];
+    this.dataEntryStarted = false;
     this.reset();
   }
 
@@ -73,6 +75,10 @@ export class CalculatorEngine {
     } else {
       this.display = this.display === "0" ? normalizedDigit : this.display + normalizedDigit;
     }
+
+    if (this.mode === "statistics") {
+      this.dataEntryStarted = true;
+    }
   }
 
   inputDecimal() {
@@ -81,15 +87,89 @@ export class CalculatorEngine {
     if (this.waitingForOperand) {
       this.display = "0.";
       this.waitingForOperand = false;
+      if (this.mode === "statistics") {
+        this.dataEntryStarted = true;
+      }
       return;
     }
     if (!this.display.includes(".")) {
       this.display += ".";
+      if (this.mode === "statistics") {
+        this.dataEntryStarted = true;
+      }
     }
+  }
+
+  toggleSign() {
+    if (this.error) return;
+    if (this.mode !== "statistics") return;
+    if (this.display === "0") return;
+    this.display = this.display.startsWith("-") ? this.display.slice(1) : "-" + this.display;
+  }
+
+  addDataPoint() {
+    if (this.error) return;
+    if (this.mode !== "statistics") return;
+    if (!this.dataEntryStarted) return;
+    this.dataSet.push(parseFloat(this.display));
+    this.display = "0";
+    this.waitingForOperand = true;
+    this.dataEntryStarted = false;
+  }
+
+  removeDataPoint(index) {
+    if (this.mode !== "statistics") return;
+    if (index < 0 || index >= this.dataSet.length) return;
+    this.dataSet.splice(index, 1);
+  }
+
+  clearDataSet() {
+    if (this.mode !== "statistics") return;
+    this.dataSet = [];
+  }
+
+  requestSum() {
+    if (this.mode !== "statistics") return;
+    if (this.dataSet.length === 0) {
+      this.display = "No data";
+    } else {
+      this.display = formatNumber(this.dataSet.reduce((a, b) => a + b, 0));
+    }
+    this.waitingForOperand = true;
+    this.dataEntryStarted = false;
+  }
+
+  requestAverage() {
+    if (this.mode !== "statistics") return;
+    if (this.dataSet.length === 0) {
+      this.display = "No data";
+    } else {
+      const sum = this.dataSet.reduce((a, b) => a + b, 0);
+      this.display = formatNumber(sum / this.dataSet.length);
+    }
+    this.waitingForOperand = true;
+    this.dataEntryStarted = false;
+  }
+
+  requestStdDev() {
+    if (this.mode !== "statistics") return;
+    if (this.dataSet.length === 0) {
+      this.display = "No data";
+    } else if (this.dataSet.length === 1) {
+      this.display = "Undefined";
+    } else {
+      const n = this.dataSet.length;
+      const mean = this.dataSet.reduce((a, b) => a + b, 0) / n;
+      const variance = this.dataSet.reduce((acc, x) => acc + (x - mean) ** 2, 0) / (n - 1);
+      this.display = formatNumber(Math.sqrt(variance));
+    }
+    this.waitingForOperand = true;
+    this.dataEntryStarted = false;
   }
 
   setOperator(nextOperator) {
     if (this.error) return;
+    if (this.mode === "statistics") return;
     const inputValue =
       this.mode === "programmer" ? parseInt(this.display, this.base) : parseFloat(this.display);
 
@@ -108,6 +188,7 @@ export class CalculatorEngine {
 
   equals() {
     if (this.error) return;
+    if (this.mode === "statistics") return;
     if (this.operator === null || this.waitingForOperand) return;
 
     const inputValue =
@@ -125,6 +206,8 @@ export class CalculatorEngine {
     if (newMode === this.mode) return;
     this.mode = newMode;
     this.base = 10;
+    this.dataSet = [];
+    this.dataEntryStarted = false;
     this.reset();
   }
 

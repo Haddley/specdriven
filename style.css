@@ -68,7 +68,7 @@ body {
 }
 
 .mode-toggle {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .base-selector {
@@ -87,4 +87,64 @@ body {
 .hex-keys .key {
   height: 32px;
   font-size: 14px;
+}
+
+.stats-panel {
+  margin-top: 8px;
+}
+
+.stats-controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.stats-controls .key {
+  height: 32px;
+  font-size: 14px;
+}
+
+.stats-count {
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #000000;
+}
+
+.stats-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 96px;
+  overflow-y: auto;
+  border: 2px solid #000000;
+}
+
+.stats-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-bottom: 2px solid #000000;
+  font-size: 14px;
+}
+
+.stats-list li:last-child {
+  border-bottom: none;
+}
+
+.stats-list li button {
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-family: inherit;
+  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.stats-list li button:active {
+  background: #000000;
+  color: #ffffff;
 }

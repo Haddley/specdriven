@@ -11,6 +11,7 @@
     <div class="mode-toggle">
       <button class="key" data-mode="standard">Standard</button>
       <button class="key" data-mode="programmer">Programmer</button>
+      <button class="key" data-mode="statistics">Statistics</button>
     </div>
     <div class="base-selector" id="base-selector" hidden>
       <button class="key" data-base="10">DEC</button>
@@ -49,6 +50,18 @@
       <button class="key" id="clear">C</button>
 
       <button class="key key-equals" id="equals">=</button>
+    </div>
+    <div class="stats-panel" id="stats-panel" hidden>
+      <div class="stats-controls">
+        <button class="key" id="toggle-sign">±</button>
+        <button class="key" id="add-data-point">Add</button>
+        <button class="key" id="request-sum">Sum</button>
+        <button class="key" id="request-average">Average</button>
+        <button class="key" id="request-stddev">StdDev</button>
+        <button class="key" id="clear-data-set">Clear data</button>
+      </div>
+      <div class="stats-count" id="stats-count">0 data points</div>
+      <ul class="stats-list" id="stats-list"></ul>
     </div>
   </main>
   <script type="module" src="calculator.js"></script>

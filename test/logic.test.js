@@ -454,3 +454,241 @@ test("Clear in Programmer Mode resets entry/calculation but leaves mode and base
   assert.equal(calc.mode, "programmer", "clear must not kick the user back to Standard Mode");
   assert.equal(calc.base, 16, "clear must not reset the selected base");
 });
+
+// --- Statistics Mode: Foundational ---
+
+test("switching to Statistics Mode from Standard resets the data set and entry flag", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  assert.deepEqual(calc.dataSet, []);
+  assert.equal(calc.dataEntryStarted, false);
+});
+
+test("switching to Statistics Mode from Programmer resets the data set and entry flag", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("programmer");
+  calc.inputDigit("1");
+  calc.setMode("statistics");
+  assert.deepEqual(calc.dataSet, []);
+  assert.equal(calc.dataEntryStarted, false);
+});
+
+test("switching from Statistics Mode back to Standard clears the data set and in-progress entry", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("5");
+  calc.addDataPoint();
+  calc.inputDigit("7");
+  calc.setMode("standard");
+  assert.deepEqual(calc.dataSet, [], "FR-013: data set clears on leaving Statistics Mode");
+  assert.equal(calc.dataEntryStarted, false);
+  assert.equal(calc.display, "0");
+  assert.equal(calc.mode, "standard");
+});
+
+test("setOperator is a no-op in Statistics Mode", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("5");
+  calc.setOperator("+");
+  assert.equal(calc.operator, null);
+  assert.equal(calc.previousValue, null);
+});
+
+test("equals is a no-op in Statistics Mode", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("5");
+  calc.equals();
+  assert.equal(calc.display, "5");
+});
+
+test("setting Statistics mode to its current value is a no-op and does not reset the data set", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("5");
+  calc.addDataPoint();
+  calc.setMode("statistics");
+  assert.deepEqual(calc.dataSet, [5], "no reset should occur when mode is unchanged");
+});
+
+// --- Statistics Mode: User Story 1 (build a data set) ---
+
+test("Statistics Mode starts with an empty data set", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  assert.equal(calc.dataSet.length, 0);
+});
+
+test("entering a number and adding it yields a data set of one point", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("1");
+  calc.inputDigit("0");
+  calc.addDataPoint();
+  assert.deepEqual(calc.dataSet, [10]);
+  assert.equal(calc.dataSet.length, 1);
+});
+
+test("adding successive numbers grows the data set count", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("1");
+  calc.inputDigit("0");
+  calc.addDataPoint();
+  calc.inputDigit("2");
+  calc.inputDigit("0");
+  calc.addDataPoint();
+  assert.equal(calc.dataSet.length, 2);
+  calc.inputDigit("3");
+  calc.inputDigit("0");
+  calc.addDataPoint();
+  assert.equal(calc.dataSet.length, 3);
+});
+
+test("a negative number, entered via toggleSign, is accepted into the data set", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("5");
+  calc.toggleSign();
+  assert.equal(calc.display, "-5");
+  calc.addDataPoint();
+  assert.deepEqual(calc.dataSet, [-5]);
+});
+
+test("a number with a decimal point is accepted into the data set", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("1");
+  calc.inputDecimal();
+  calc.inputDigit("5");
+  calc.addDataPoint();
+  assert.deepEqual(calc.dataSet, [1.5]);
+});
+
+test("pressing Add with no digits entered since the last add is a no-op", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("5");
+  calc.addDataPoint();
+  calc.addDataPoint();
+  assert.deepEqual(calc.dataSet, [5], "a second Add without new entry must not add a 0");
+});
+
+test("adding the same numeric value twice yields two separate data points", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("5");
+  calc.addDataPoint();
+  calc.inputDigit("5");
+  calc.addDataPoint();
+  assert.deepEqual(calc.dataSet, [5, 5], "FR-012: duplicates are separate data points");
+});
+
+// --- Statistics Mode: User Story 2 (Sum and Average) ---
+
+test("Sum and Average of a data set of 10, 20, 30", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  for (const n of ["10", "20", "30"]) {
+    for (const d of n) calc.inputDigit(d);
+    calc.addDataPoint();
+  }
+  calc.requestSum();
+  assert.equal(calc.display, "60");
+  calc.requestAverage();
+  assert.equal(calc.display, "20");
+});
+
+test("Sum and Average of a single-point data set both equal that point", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("7");
+  calc.addDataPoint();
+  calc.requestSum();
+  assert.equal(calc.display, "7");
+  calc.requestAverage();
+  assert.equal(calc.display, "7");
+});
+
+test("Sum and Average show 'No data' for an empty data set", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.requestSum();
+  assert.equal(calc.display, "No data");
+  calc.requestAverage();
+  assert.equal(calc.display, "No data");
+});
+
+// --- Statistics Mode: User Story 3 (Standard Deviation) ---
+
+test("Standard Deviation of {2,4,4,4,5,5,7,9} is the sample stddev, not the population stddev", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  for (const n of ["2", "4", "4", "4", "5", "5", "7", "9"]) {
+    calc.inputDigit(n);
+    calc.addDataPoint();
+  }
+  calc.requestStdDev();
+  assert.equal(calc.display, "2.1380899353", "sample stddev (n-1), not population stddev (\"2\")");
+});
+
+test("Standard Deviation of a single-point data set is 'Undefined'", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("7");
+  calc.addDataPoint();
+  calc.requestStdDev();
+  assert.equal(calc.display, "Undefined");
+});
+
+test("Standard Deviation of an empty data set is 'No data'", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.requestStdDev();
+  assert.equal(calc.display, "No data");
+});
+
+// --- Statistics Mode: User Story 4 (manage the data set) ---
+
+test("removing a data point by index leaves the others, and Sum reflects the change", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  for (const n of ["10", "20", "30"]) {
+    for (const d of n) calc.inputDigit(d);
+    calc.addDataPoint();
+  }
+  calc.removeDataPoint(1);
+  assert.deepEqual(calc.dataSet, [10, 30]);
+  calc.requestSum();
+  assert.equal(calc.display, "40");
+});
+
+test("clearing a data set containing several points empties it", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  for (const n of ["10", "20", "30"]) {
+    for (const d of n) calc.inputDigit(d);
+    calc.addDataPoint();
+  }
+  calc.clearDataSet();
+  assert.equal(calc.dataSet.length, 0);
+});
+
+test("clearing an already-empty data set is a no-op", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.clearDataSet();
+  assert.deepEqual(calc.dataSet, []);
+});
+
+test("removing an out-of-range index is a no-op and does not error", () => {
+  const calc = new CalculatorEngine();
+  calc.setMode("statistics");
+  calc.inputDigit("5");
+  calc.addDataPoint();
+  calc.removeDataPoint(5);
+  assert.deepEqual(calc.dataSet, [5]);
+  calc.removeDataPoint(-1);
+  assert.deepEqual(calc.dataSet, [5]);
+});
