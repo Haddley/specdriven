@@ -59,3 +59,43 @@ body {
 .key-equals {
   grid-column: 1 / -1;
 }
+
+.key:disabled {
+  background: #e0e0e0;
+  color: #808080;
+  cursor: not-allowed;
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #000000;
+  cursor: pointer;
+}
+
+.base-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.key-base.active {
+  background: #000000;
+  color: #ffffff;
+}
+
+.hex-keys {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.hex-keys .key {
+  height: 32px;
+  font-size: 14px;
+}

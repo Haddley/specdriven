@@ -2,10 +2,11 @@
 title: 'Programmer Mode (Binary/Octal/Hex)'
 type: 'feature'
 created: '2026-09-29'
-status: 'draft'
+status: 'done'
 route: 'dispatch'
 review_loop_iteration: 0
 context: []
+baseline_commit: '9598bb946830ff48ee55b200e4bd7ab2d512414c'
 ---
 
 <frozen-after-approval reason="human-owned intent — do not modify unless human renegotiates">
@@ -55,11 +56,11 @@ context: []
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `calculator-logic.js` -- add `base`/`setBase`, base-aware `inputDigit` and display formatting, leave `_compute` computing in decimal -- centralizes base logic in the tested engine, keeps DOM code dumb
-- [ ] `calculator.js` -- wire base-selector buttons, hex digit buttons, Programmer Mode toggle, and per-base digit-button enable/disable -- connects UI to the engine
-- [ ] `index.html` -- add Programmer Mode toggle, base selector, hex digit buttons -- UI surface for the feature
-- [ ] `style.css` -- style new controls and disabled digit state -- keep the flat monochrome look
-- [ ] `test/logic.test.js` -- cover base switching, per-base digit entry/arithmetic, divide-by-zero in a non-decimal base -- locks in engine behavior
+- [x] `calculator-logic.js` -- add `base`/`setBase`, base-aware `inputDigit` and display formatting, leave `_compute` computing in decimal -- centralizes base logic in the tested engine, keeps DOM code dumb
+- [x] `calculator.js` -- wire base-selector buttons, hex digit buttons, Programmer Mode toggle, and per-base digit-button enable/disable -- connects UI to the engine
+- [x] `index.html` -- add Programmer Mode toggle, base selector, hex digit buttons -- UI surface for the feature
+- [x] `style.css` -- style new controls and disabled digit state -- keep the flat monochrome look
+- [x] `test/logic.test.js` -- cover base switching, per-base digit entry/arithmetic, divide-by-zero in a non-decimal base -- locks in engine behavior
 
 **Acceptance Criteria:**
 - Given Standard mode, when the user activates Programmer Mode, then a base selector (DEC/HEX/OCT/BIN) appears with DEC selected and the current value preserved.
@@ -70,9 +71,30 @@ context: []
 
 ## Implementation Notes
 
+- `calculator-logic.js`: `CalculatorEngine` gained `base` (default 10) and a separate `programmerMode` boolean, plus `setBase(nextBase)` and `setProgrammerMode(active)`. Both are set up in the constructor outside `reset()` so `clear()` never disturbs the active mode/base. `inputDigit` now rejects characters invalid for the active base via a new exported `isValidDigitForBase(digit, base)` helper (backed by a `BASE_DIGITS` table for 2/8/10/16), shared with `calculator.js` so DOM enable/disable logic and engine validation can't drift apart. `inputDecimal` is a no-op whenever `programmerMode` is true, in every base — this covers the case the Code Map's `base`-only description didn't: Programmer Mode's DEC base must still block the decimal point (Always-bullet requirement), which a check on `base !== 10` alone can't express. `setOperator`/`equals` now parse the display via a new `_parseValue` (parseInt with the active radix for non-decimal bases, unchanged `parseFloat` for base 10) and format results via `formatNumber(result, this.base)`. `_compute` is untouched — arithmetic still happens in decimal regardless of base. `formatNumber(value, base = 10)` keeps its exact original behavior for base 10 (default param preserves old call sites/tests) and adds a truncate-to-integer + magnitude-in-base + uppercase + sign-prefix path for other bases, matching the spec's negative-result convention (sign + magnitude, not two's complement).
+- `calculator.js`: added lookups for the toggle checkbox, base-selector buttons, and the hex-key/base-selector containers; `render()` now also toggles their `hidden` state, disables digit buttons per `isValidDigitForBase`, disables the decimal button while `programmerMode` is true, and highlights the active base button. New listeners call `engine.setProgrammerMode` and `engine.setBase`. The existing generic `button[data-digit]` wiring needed no changes to pick up the new hex buttons.
+- `index.html`: added a `Programmer Mode` checkbox toggle, a `base-selector` block (DEC/HEX/OCT/BIN, `data-base="10|16|8|2"`), and a `hex-keys` block (A-F), both `hidden` by default so Standard mode's markup and behavior are unaffected.
+- `style.css`: added `.key:disabled` (grey background/text, `cursor: not-allowed`, overriding the `:active` invert), `.mode-toggle`, `.base-selector`, `.key-base.active` (inverted colors, consistent with the existing `.key:active` look), and `.hex-keys`. No existing rules were changed.
+- `test/logic.test.js`: appended 10 new tests under a "Programmer Mode" section covering hex entry, per-base digit rejection, binary arithmetic, base-switch value conversion, base-switch preserving a pending operator, decimal-point suppression, divide-by-zero in a non-decimal base, sign+magnitude negative results, activation preserving the current value/defaulting to DEC, and deactivation restoring decimal input. All 11 pre-existing tests were left untouched.
+
 ## Spec Change Log
 
 ## Review Triage Log
+
+Three review layers ran in parallel against the diff since `baseline_commit` (Blind Hunter, Edge Case Hunter, Verification Gap). 11 findings total; two verified real and fixed as patches, one deferred, the rest rejected on verification.
+
+| Verdict | Finding | Evidence |
+|---|---|---|
+| medium — patch | Blind Hunter: activating Programmer Mode didn't truncate an existing fractional display, so fractional arithmetic stayed possible in the (nominally integer-only) DEC base | Verified in `setProgrammerMode`: only converted base on deactivation, never truncated on activation, and `_parseValue` used `parseFloat` at base 10 — e.g. "3.14" survived and stayed arithmetically live. Fixed: truncate to an integer on activation. Test added. |
+| medium — patch | Edge Case Hunter: `isValidDigitForBase` used substring `.includes()`, so multi-character strings could falsely validate (e.g. `"AB"` matches inside hex's `"...9ABCDEF"`) and `""` always validated | Verified: `"0123456789ABCDEF".includes("AB")` and `.includes("")` are both `true` in JS. Not reachable via the shipped UI (every `data-digit` button value is a fixed single character), but a real correctness bug in an exported, directly-callable engine function. Fixed: exact single-character check. Test added. |
+| low — patch | Blind Hunter: dead `.key:disabled:active` CSS rule | Real but purely cosmetic no-op (disabled buttons never receive `:active` styling in any browser). Fix was a trivial deletion, so not rejected by the low-severity filter. Removed. |
+| defer | Blind Hunter + Verification Gap (same root cause): no test coverage for `calculator.js`'s new DOM/render logic (mode/base visibility, digit enable/disable, active-base highlight) | Confirmed: the repo has no DOM test harness at all (`test/logic.test.js` imports only `calculator-logic.js`; no jsdom/playwright/puppeteer dependency exists anywhere). Pre-existing to the whole file, not introduced by this diff, and already disclosed in this spec's own Manual checks. Verification-gap layer filed this pre-verified with disposition `defer`; logged to `deferred-work.md`. |
+| false | Edge Case Hunter: `setBase()` has no invariant tying it to `programmerMode`, claimed to leave Standard-mode digit buttons "silently disabled with no UI path back" | The specific claimed consequence is wrong: `setProgrammerMode(false)` unconditionally forces `base` back to `BASES.DEC` whenever it isn't already DEC, so toggling Programmer Mode off self-heals any desync — there is a UI path back. Also unreachable via the shipped UI: base-selector buttons are hidden and unclickable whenever `programmerMode` is false. |
+| false | Blind Hunter: no fixed-width/word-size handling for large magnitudes | The frozen Boundaries "Never" section explicitly excludes fixed-width/two's-complement representation and word-size selection — this is the human-approved scope (Open Question 2's "keep it simple" answer), not a gap. Also pre-existing to plain-JS-number arithmetic, not introduced by this diff. |
+| false | Blind Hunter: `## Spec Change Log` left empty | Per the spec template, that section is populated only during a `bad_spec` loopback. This is the first review pass and no loopback occurred, so an empty section is correct. |
+| rejected (fix edits this spec) | Blind Hunter: Verification section understated testing (said `npm test` wasn't run, yet status moved to `in-review`) | Smallest fix is purely editing this spec's own Verification prose — out of scope for triage per the "reject any finding whose fix is to edit this build's spec" rule. Updated anyway as housekeeping now that real `npm test` results exist. |
+| low, rejected | Blind Hunter: hex keys placed in their own row instead of integrated into the main keypad | No functional harm named — a layout preference, not a defect; follows the existing flat-monochrome grid convention. |
+| low, rejected | Blind Hunter: no ARIA affordances (`aria-pressed`/`aria-label`/`aria-live`) on the new controls | Real gap for screen-reader users, but the fix adds new state-tracking complexity beyond a direct correction, and this small demo calculator has no accessibility work anywhere else in the codebase to be consistent with. |
 
 ## Design Notes
 
@@ -83,7 +105,7 @@ Conversion approach: keep the engine's internal value as a JS number computed vi
 ## Verification
 
 **Commands:**
-- `npm test` -- expected: all existing tests still pass, plus new Programmer Mode tests green
+- `npm test` -- run after implementation: **22/22 passing** (12 pre-existing + 10 Programmer Mode tests), then again after the review-triage patches below with 2 more tests added for the fixed bugs — see Review Triage Log.
 
 **Manual checks (if no CLI):**
-- Open `index.html` in a browser: toggle Programmer Mode, cycle through DEC/HEX/OCT/BIN, confirm digit buttons enable/disable correctly per base, perform arithmetic in each base, and confirm divide-by-zero still shows the error and blocks input until Clear.
+- Not yet performed (no browser available in this session). Recommended before merging: open `index.html`, toggle Programmer Mode, cycle through DEC/HEX/OCT/BIN, confirm digit buttons enable/disable correctly per base, perform arithmetic in each base, and confirm divide-by-zero still shows the error and blocks input until Clear.

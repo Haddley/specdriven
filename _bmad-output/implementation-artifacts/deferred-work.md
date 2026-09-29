@@ -1,0 +1,3 @@
+- source_spec: `_bmad-output/implementation-artifacts/spec-programmer-mode.md`
+  summary: No DOM test harness exists for `calculator.js`'s render/wiring logic (mode/base visibility, digit enable-disable, active-base highlight, decimal-button disabling).
+  evidence: Confirmed the repo has no jsdom/playwright/puppeteer dependency anywhere and `test/logic.test.js` only imports `calculator-logic.js`, never `document`. Pre-existing to the whole file (the original digit/decimal/operator/equals/clear wiring was equally untested before Programmer Mode), so out of scope for this story; adding a DOM test harness is a larger, separate effort.

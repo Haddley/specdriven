@@ -9,6 +9,28 @@
 <body>
   <main class="calculator">
     <div class="display" id="display">0</div>
+
+    <label class="mode-toggle">
+      <input type="checkbox" id="programmer-toggle" />
+      Programmer Mode
+    </label>
+
+    <div class="base-selector" id="base-selector" hidden>
+      <button class="key key-base" data-base="10">DEC</button>
+      <button class="key key-base" data-base="16">HEX</button>
+      <button class="key key-base" data-base="8">OCT</button>
+      <button class="key key-base" data-base="2">BIN</button>
+    </div>
+
+    <div class="hex-keys" id="hex-keys" hidden>
+      <button class="key" data-digit="A">A</button>
+      <button class="key" data-digit="B">B</button>
+      <button class="key" data-digit="C">C</button>
+      <button class="key" data-digit="D">D</button>
+      <button class="key" data-digit="E">E</button>
+      <button class="key" data-digit="F">F</button>
+    </div>
+
     <div class="keys">
       <button class="key" data-operator="÷">÷</button>
       <button class="key" data-digit="7">7</button>
