@@ -55,6 +55,8 @@ export function toRadixString(value, base) {
 export class CalculatorEngine {
   constructor() {
     this.base = "DEC";
+    this.statisticsMode = false;
+    this.dataSet = [];
     this.reset();
   }
 
@@ -68,6 +70,54 @@ export class CalculatorEngine {
 
   clear() {
     this.reset();
+    if (this.statisticsMode) {
+      this.dataSet = [];
+    }
+  }
+
+  /** Switches Statistics mode on or off, always starting from an empty data set. */
+  setStatisticsMode(active) {
+    this.statisticsMode = active;
+    this.dataSet = [];
+    this.reset();
+  }
+
+  /** Appends the current display value to the data set, then starts a fresh entry. */
+  addToDataSet() {
+    if (!this.statisticsMode || this.error) return;
+    this.dataSet.push(parseFloat(this.display));
+    this.display = "0";
+    this.waitingForOperand = false;
+  }
+
+  computeSum() {
+    if (!this._requireData()) return;
+    const sum = this.dataSet.reduce((total, value) => total + value, 0);
+    this.display = formatNumber(sum);
+  }
+
+  computeAverage() {
+    if (!this._requireData()) return;
+    const sum = this.dataSet.reduce((total, value) => total + value, 0);
+    this.display = formatNumber(sum / this.dataSet.length);
+  }
+
+  computeStdDev() {
+    if (!this._requireData()) return;
+    const mean = this.dataSet.reduce((total, value) => total + value, 0) / this.dataSet.length;
+    const variance =
+      this.dataSet.reduce((total, value) => total + (value - mean) ** 2, 0) / this.dataSet.length;
+    this.display = formatNumber(Math.sqrt(variance));
+  }
+
+  /** Shared empty-data-set guard for Sum/Average/StdDev; sets the error state and returns false if empty. */
+  _requireData() {
+    if (this.dataSet.length === 0) {
+      this.display = "No data entered";
+      this.error = true;
+      return false;
+    }
+    return true;
   }
 
   setBase(base) {

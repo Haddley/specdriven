@@ -31,14 +31,18 @@ Runs the calculation-engine tests with Node's built-in test runner
 ## Structure
 
 - `index.html` / `style.css` — the flat, boxy UI, including the DEC/HEX/OCT/BIN
-  mode toggle and hex digit keys
+  mode toggle and hex digit keys, and the STAT mode toggle with its
+  Add/Sum/Avg/Std keys and entered-count indicator
 - `calculator-logic.js` — the pure calculation engine (no DOM access), so
   it can be tested directly
 - `calculator.js` — DOM wiring: button clicks call into the engine and
   re-render the display, including enabling/disabling keys for the active base
+  and disabling arithmetic/base keys while Statistics mode is active
 - `test/logic.test.js` — tests against the decimal four-function behavior
 - `test/programmer-mode.test.js` — tests against Programmer Mode (base
   switching, base-aware calculation)
+- `test/statistics-mode.test.js` — tests against Statistics Mode (data-set
+  entry, sum/average/standard deviation, clearing and mode-switch behavior)
 
 ## Design decisions already made
 
@@ -54,3 +58,12 @@ Runs the calculation-engine tests with Node's built-in test runner
   unbounded. Switching bases reformats the current value into the new base
   rather than resetting it, truncating toward zero if a fractional Decimal
   value is present.
+- **Statistics Mode** lets the user build up a sequence of decimal numbers
+  by typing a value and pressing **Add**, then compute the **Sum**,
+  **Average**, or (population) **Standard Deviation** of the entered
+  sequence. Standard deviation divides by `n`, not `n - 1`, so it is
+  well-defined even for a single entry (result `0`). Statistics mode is
+  decimal-only: while it is active, the arithmetic operators, equals, and
+  the Decimal/Hex/Octal/Binary base toggle are disabled. Clearing empties
+  the current entry and the whole data set; leaving Statistics mode also
+  clears the data set, so re-entering it always starts fresh.

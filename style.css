@@ -42,6 +42,29 @@ body {
   margin-bottom: 8px;
 }
 
+.stat-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.stat-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border: 2px solid #000000;
+  font-size: 16px;
+}
+
+.stat-keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
 .keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
